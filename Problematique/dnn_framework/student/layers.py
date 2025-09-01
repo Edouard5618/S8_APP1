@@ -41,36 +41,54 @@ class BatchNormalization(Layer):
     This class implements a batch normalization layer.
     """
 
+
     def __init__(self, input_count, alpha=0.1):
+        super().__init__()
+        self.alpha = alpha
         self.gamma = np.random.rand(input_count)
         self.beta = np.random.rand(input_count)
+        self.global_mean = np.zeros(input_count)
+        self.global_variance = np.zeros(input_count)
+        self.epsilon = 1e-7
 
     def get_parameters(self):
         params = {"gamma":self.gamma,"beta":self.beta}
         return params
 
     def get_buffers(self):
-        raise NotImplementedError()
+        buffers = {"global_mean":self.global_mean, "global_variance": self.global_variance}
+        return buffers
 
     def forward(self, x):
-        epsilon = 1e-7 # Avoid division by zero
-        M = x.shape[0] # Batch size
+        if self.is_training():
+            return self._forward_training(x)
+        else:
+            return self._forward_evaluation(x)
 
-        u = (1/M)*np.sum(x,axis=0)
-        sigma_2 = (1/M)*np.sum((x-u)**2, axis=0)
-        x_ = (x-u)/np.sqrt(sigma_2+epsilon)
+
+    def _forward_training(self, x):
+        M = x.shape[0]  # Batch size
+
+        u = (1 / M) * np.sum(x, axis=0)
+        sigma_2 = (1 / M) * np.sum((x - u) ** 2, axis=0)
+        x_ = (x - u) / np.sqrt(sigma_2 + self.epsilon)
         y = x_ * self.gamma + self.beta
 
+        self.global_mean = (1 - self.alpha) * self.global_mean + self.alpha * u
+        self.global_variance = (1 - self.alpha) * self.global_variance + self.alpha * sigma_2
+
+        cache = {"x": x, "gamma": self.gamma}
+        return y, cache
+
+    def _forward_evaluation(self, x):
+        x_ = (x - self.global_mean) / np.sqrt(self.global_variance)
+        y = x_ * self.gamma + self.beta
         cache = {"x":x,"gamma":self.gamma}
         return y, cache
 
-    def _forward_training(self, x):
-        raise NotImplementedError()
-
-    def _forward_evaluation(self, x):
-        raise NotImplementedError()
-
     def backward(self, output_grad, cache):
+
+
         raise NotImplementedError()
 
 
