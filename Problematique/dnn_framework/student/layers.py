@@ -15,7 +15,6 @@ class FullyConnectedLayer(Layer):
     def get_parameters(self):
 
         parameters = {"w": self.weights, "b":self.bias}
-        print(parameters)
         return parameters
 
     def get_buffers(self):
@@ -43,16 +42,27 @@ class BatchNormalization(Layer):
     """
 
     def __init__(self, input_count, alpha=0.1):
-        raise NotImplementedError()
+        self.gamma = np.random.rand(input_count)
+        self.beta = np.random.rand(input_count)
 
     def get_parameters(self):
-        raise NotImplementedError()
+        params = {"gamma":self.gamma,"beta":self.beta}
+        return params
 
     def get_buffers(self):
         raise NotImplementedError()
 
     def forward(self, x):
-        raise NotImplementedError()
+        epsilon = 1e-7 # Avoid division by zero
+        M = x.shape[0] # Batch size
+
+        u = (1/M)*np.sum(x,axis=0)
+        sigma_2 = (1/M)*np.sum((x-u)**2, axis=0)
+        x_ = (x-u)/np.sqrt(sigma_2+epsilon)
+        y = x_ * self.gamma + self.beta
+
+        cache = {"x":x,"gamma":self.gamma}
+        return y, cache
 
     def _forward_training(self, x):
         raise NotImplementedError()
