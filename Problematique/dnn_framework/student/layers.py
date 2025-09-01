@@ -9,17 +9,22 @@ class FullyConnectedLayer(Layer):
     """
 
     def __init__(self, input_count, output_count):
-        self.parameters = np.array([])
-        raise NotImplementedError()
+        self.weights = np.random.rand(output_count,input_count)
+        self.bias = np.random.rand(output_count)
 
     def get_parameters(self):
-        raise NotImplementedError()
+
+        parameters = {"w": self.weights, "b":self.bias}
+        print(parameters)
+        return parameters
 
     def get_buffers(self):
         raise NotImplementedError()
 
     def forward(self, x):
-        raise NotImplementedError()
+        y = x@self.weights.T+self.bias
+        cache = {"x":x,"w":self.weights}
+        return y,cache
 
     def backward(self, output_grad, cache):
         raise NotImplementedError()
