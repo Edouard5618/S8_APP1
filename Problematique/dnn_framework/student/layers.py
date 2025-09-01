@@ -27,7 +27,14 @@ class FullyConnectedLayer(Layer):
         return y,cache
 
     def backward(self, output_grad, cache):
-        raise NotImplementedError()
+        x = cache['x'][:]
+
+        input_grad = (output_grad@self.weights)
+        w_grad = (x.T@output_grad).T
+        b_grad = np.sum(output_grad, axis=0)
+
+        param_grad = {'w':w_grad,'b':b_grad}
+        return input_grad, param_grad
 
 
 class BatchNormalization(Layer):
