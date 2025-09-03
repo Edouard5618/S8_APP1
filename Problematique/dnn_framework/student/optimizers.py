@@ -7,7 +7,10 @@ class SgdOptimizer(Optimizer):
     """
 
     def __init__(self, parameters, learning_rate=0.01):
-        raise NotImplementedError()
+        super().__init__(parameters)
+        self.lr = learning_rate
+        return
 
     def _step_parameter(self, parameter, parameter_grad, parameter_name):
-        raise NotImplementedError()
+        parameter -= self.lr*parameter_grad
+        return parameter
