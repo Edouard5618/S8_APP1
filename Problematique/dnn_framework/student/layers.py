@@ -20,7 +20,7 @@ class FullyConnectedLayer(Layer):
         return parameters
 
     def get_buffers(self):
-        raise NotImplementedError()
+        return {}
 
     def forward(self, x):
         y = x@self.weights.T+self.bias
@@ -117,10 +117,10 @@ class Sigmoid(Layer):
     """
 
     def get_parameters(self):
-        raise NotImplementedError()
+        return {}
 
     def get_buffers(self):
-        raise NotImplementedError()
+        return {}
 
     def forward(self, x):
         y = 1/(1+np.exp(-x))
@@ -140,10 +140,10 @@ class ReLU(Layer):
     """
 
     def get_parameters(self):
-        raise NotImplementedError()
+        return {}
 
     def get_buffers(self):
-        raise NotImplementedError()
+        return {}
 
     def forward(self, x):
         y = np.maximum(x,0)
