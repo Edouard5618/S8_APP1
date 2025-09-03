@@ -1,3 +1,5 @@
+from random import betavariate
+
 import numpy as np
 
 from dnn_framework.layer import Layer
@@ -77,7 +79,7 @@ class BatchNormalization(Layer):
         self.global_mean = (1 - self.alpha) * self.global_mean + self.alpha * u
         self.global_variance = (1 - self.alpha) * self.global_variance + self.alpha * sigma_2
 
-        cache = {"x": x, "gamma": self.gamma}
+        cache = {"x": x, "x_":x_, "gamma": self.gamma, "beta": self.beta, "u": u, "sigma_2": sigma_2, "M": M}
         return y, cache
 
     def _forward_evaluation(self, x):
@@ -87,9 +89,26 @@ class BatchNormalization(Layer):
         return y, cache
 
     def backward(self, output_grad, cache):
+        x = cache['x'][:]
+        x_ = cache['x_'][:]
+        gamma = cache['gamma'][:]
+        beta = cache['beta'][:]
+        u = cache['u'][:]
+        sigma_2 = cache['sigma_2'][:]
+        M = cache['M']
 
 
-        raise NotImplementedError()
+        x__grad = output_grad * gamma
+        sigma_2_grad = np.sum(x__grad*(x-u)*(-0.5*(sigma_2+self.epsilon)**(-3/2)) ,axis=0)
+        u_grad = -np.sum(x__grad/np.sqrt(sigma_2+self.epsilon), axis=0)
+        x_grad = x__grad/np.sqrt(sigma_2+self.epsilon)+(2/M)*sigma_2_grad*(x-u)+(1/M)*u_grad
+        gamma_grad = np.sum(output_grad*x_, axis=0)
+        beta_grad = np.sum(output_grad, axis=0)
+
+        input_grad = x_grad
+        param_grad = {"gamma":gamma_grad,"beta":beta_grad}
+
+        return input_grad, param_grad
 
 
 class Sigmoid(Layer):
