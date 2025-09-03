@@ -30,8 +30,8 @@ class FullyConnectedLayer(Layer):
     def backward(self, output_grad, cache):
         x = cache['x'][:]
 
-        input_grad = (output_grad@self.weights)
-        w_grad = (x.T@output_grad).T
+        input_grad = output_grad @ self.weights
+        w_grad = output_grad.T @ x
         b_grad = np.sum(output_grad, axis=0)
 
         param_grad = {'w':w_grad,'b':b_grad}
@@ -123,10 +123,15 @@ class Sigmoid(Layer):
         raise NotImplementedError()
 
     def forward(self, x):
-        raise NotImplementedError()
+        y = 1/(1+np.exp(-x))
+        cache = {"x": x}
+        return y, cache
 
     def backward(self, output_grad, cache):
-        raise NotImplementedError()
+        x = cache["x"][:]
+        y = 1/(1+np.exp(-x))
+        x_grad = output_grad*(1-y)*y
+        return x_grad, x
 
 
 class ReLU(Layer):
@@ -141,7 +146,12 @@ class ReLU(Layer):
         raise NotImplementedError()
 
     def forward(self, x):
-        raise NotImplementedError()
+        y = np.maximum(x,0)
+        cache = {"x":x}
+        return y, cache
 
     def backward(self, output_grad, cache):
-        raise NotImplementedError()
+        x = cache["x"][:]
+        x = (x>0).astype(float)
+        input_grad = x*output_grad
+        return input_grad, cache
